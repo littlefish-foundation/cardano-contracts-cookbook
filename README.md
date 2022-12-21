@@ -1,6 +1,7 @@
 # Cardano Smart Contracts Tutorial
 
-Welcome to the Cardano Smart Contracts Tutorial repository! Here, you will find a series of Jupyter notebooks that explain how to write, test, and deploy smart contracts on the Cardano blockchain.
+Welcome to the Cardano Smart Contracts Tutorial repository!  
+Here, you will find a series of Jupyter notebooks that explain how to write, test, and deploy smart contracts on the Cardano blockchain.
 
 ## What you will find in this repository
 
