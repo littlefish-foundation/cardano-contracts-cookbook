@@ -1,0 +1,2 @@
+# ignore checkpoint files
+code/notebooks/.ipynb_checkpoints/*
