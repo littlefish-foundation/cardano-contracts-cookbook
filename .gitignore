@@ -10,3 +10,4 @@ code/notebooks/*.marlowe
 # ignore the notebook payment secret and wallet files
 code/notebooks/payment.addr
 code/notebooks/payment.vkey
+code/notebooks/wallet.seed
