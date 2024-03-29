@@ -1,0 +1,32 @@
+{
+  "Party1": {
+    "name": "Lady Whisker (Party1)",
+    "id": "0001",
+    "description": "... never more than 64 characters long string allowed ...",
+    "image": "https://tinyurl.com/2xlch3de",
+    "mediaType": "image/png",
+    "attributes": [
+    {"trait_type": "Category", "value": "Chess Piece"},
+    {"trait_type": "Rank", "value": "Pawn"},
+    {"trait_type": "Theme", "value": "Cat"},
+    {"trait_type": "Color Palette", "value": "Monochrome"},
+    {"trait_type": "Expression", "value": "Serene"}],
+    "year": 2023,
+    "external_url": "https://example.com"
+  },
+  "Party2": {
+    "name": "Lord Hoot (Party2)",
+    "id": "0002",
+    "description": "artwork on the subject of experimenting with NFT deployment",
+    "image": "https://tinyurl.com/28lqb6go",
+    "mediaType": "image/png",
+    "attributes": [
+    {"trait_type": "Category", "value": "Chess Piece"},
+    {"trait_type": "Rank", "value": "Pawn"},
+    {"trait_type": "Theme", "value": "Owl"},
+    {"trait_type": "Color Palette", "value": "Monochrome"},
+    {"trait_type": "Expression", "value": "Wise"}],
+    "year": 2023,
+    "external_url": "https://example.com"
+  }
+}
