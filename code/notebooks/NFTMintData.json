@@ -6,12 +6,12 @@
     "image": "https://tinyurl.com/2xlch3de",
     "mediaType": "image/png",
     "attributes": [
-    {"trait_type": "Category", "value": "Chess Piece"},
-    {"trait_type": "Rank", "value": "Pawn"},
-    {"trait_type": "Theme", "value": "Cat"},
-    {"trait_type": "Color Palette", "value": "Monochrome"},
-    {"trait_type": "Expression", "value": "Serene"}],
-    "year": 2023,
+      {"trait_type": "Category", "value": "Chess Piece"},
+      {"trait_type": "Rank", "value": "Pawn"},
+      {"trait_type": "Theme", "value": "Cat"},
+      {"trait_type": "Color Palette", "value": "Monochrome"},
+      {"trait_type": "Expression", "value": "Serene"}],
+    "year": 2024,
     "external_url": "https://example.com"
   },
   "Party2": {
@@ -21,12 +21,12 @@
     "image": "https://tinyurl.com/28lqb6go",
     "mediaType": "image/png",
     "attributes": [
-    {"trait_type": "Category", "value": "Chess Piece"},
-    {"trait_type": "Rank", "value": "Pawn"},
-    {"trait_type": "Theme", "value": "Owl"},
-    {"trait_type": "Color Palette", "value": "Monochrome"},
-    {"trait_type": "Expression", "value": "Wise"}],
-    "year": 2023,
+      {"trait_type": "Category", "value": "Chess Piece"},
+      {"trait_type": "Rank", "value": "Pawn"},
+      {"trait_type": "Theme", "value": "Owl"},
+      {"trait_type": "Color Palette", "value": "Monochrome"},
+      {"trait_type": "Expression", "value": "Wise"}],
+    "year": 2024,
     "external_url": "https://example.com"
   }
 }
