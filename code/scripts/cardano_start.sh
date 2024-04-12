@@ -32,7 +32,7 @@ tmux send-keys -t 2 "htop" Enter
 tmux resize-pane -t 3 -D 5
 tmux send-keys -t 3 "set -o vi" Enter
 tmux send-keys -t 3 'cd $(dirname $(find ~ -type f -name "cardano_start.sh" 2>/dev/null | head -n 1))' Enter
-# tmux send-keys -t 3 'gunicorn flaskserver:app -b 0.0.0.0:8050' Enter
+tmux send-keys -t 3 'gunicorn flaskserver:app -b 0.0.0.0:8050 --reload' Enter
 
 # activate pane 1, bottom right
 tmux select-pane -t 2
