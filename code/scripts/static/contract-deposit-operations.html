@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Sign Tx</title>
+</head>
+<body>
+    <select id="walletSelector"></select>
+    <button id="selectWalletBtn">Select Wallet</button>
+    <hr>
+    <button id="checkContractsBtn">Check All Active Contracts</button>
+    <div id="contractsList"></div>
+    <script src="https://cdn.jsdelivr.net/gh/input-output-hk/marlowe-ts-sdk/jsdelivr-npm-importmap.js"></script>
+    <script type="module">
+    import { mkRuntimeLifecycle } from '@marlowe.io/runtime-lifecycle/browser';
+    import * as wallet from '@marlowe.io/wallet';
+    import { mkRestClient } from "@marlowe.io/runtime-rest-client";
+
+    const walletSelector = document.getElementById("walletSelector");
+    const selectWalletBtn = document.getElementById("selectWalletBtn");
+    const runtimeURL = "https://marlowe-runtime-preview-web.demo.scdev.aws.iohkdev.io";
+    const DAPP_TAG = "swap_demo";
+    const specificRoles = { assetName: "Party1", policyId: "${PARTY1_ROLE_POLICYID}" };
+
+    let runtimeLifecycle, restClient, bWallet;
+
+    const initializeWallet = async (walletName) => {
+        runtimeLifecycle = await mkRuntimeLifecycle({ walletName, runtimeURL });
+        restClient = await mkRestClient(runtimeURL);
+        bWallet = await wallet.mkBrowserWallet(walletName);
+        console.log("Initialized with wallet:", walletName);
+    };
+
+    wallet.getInstalledWalletExtensions().forEach(walletExtension => {
+        const option = document.createElement("option");
+        option.value = walletExtension.name;
+        option.text = walletExtension.name;
+        walletSelector.add(option);
+    });
+
+    selectWalletBtn.addEventListener('click', async () => {
+        await initializeWallet(walletSelector.value);
+    });
+
+    if(walletSelector.options.length > 0) {
+        initializeWallet(walletSelector.options[0].value);
+    }
+
+    const fetchContractsFromRestClient = async (tags, addresses, roles) => {
+        const contractsRequest = { tags, partyAddresses: [...addresses], partyRoles: [roles] };
+        return await restClient.getContracts(contractsRequest);
+    };
+
+    const checkActiveContracts = async () => {
+        const walletAddresses = await runtimeLifecycle.wallet.getUsedAddresses();
+        const contractHeaders = await fetchContractsFromRestClient([DAPP_TAG], new Set(walletAddresses), specificRoles);
+        await updateContractsList(contractHeaders.contracts);
+    };
+
+    const isContractOpenForDeposit = async (contractId) => {
+        const now = new Date();
+        const inTenMinutes = new Date(now.getTime() + 10 * 60000);
+        const environment = { 
+            timeInterval: { 
+                from: now.getTime(), 
+                to: inTenMinutes.getTime() 
+            } 
+        };
+
+        const { applicable_inputs } = await runtimeLifecycle.contracts.getApplicableInputs(contractId, environment);
+        return applicable_inputs.deposits.length > 0;
+    };
+
+    const createContractDiv = async (contractInfo) => {
+        const contractDiv = document.createElement('div');
+        contractDiv.textContent = `Contract ID: ${contractInfo.contractId}`;
+
+        if (await isContractOpenForDeposit(contractInfo.contractId)) {
+            const depositButton = document.createElement('button');
+            depositButton.textContent = 'Deposit';
+            depositButton.addEventListener('click', () => handleDeposit(contractInfo.contractId));
+            contractDiv.appendChild(depositButton);
+        }
+
+        return contractDiv;
+    };
+
+    const updateContractsList = async (contracts) => {
+        const contractsListDiv = document.getElementById('contractsList');
+        contractsListDiv.innerHTML = '';
+
+        for (const contractInfo of contracts) {
+            const contractDiv = await createContractDiv(contractInfo);
+            contractsListDiv.appendChild(contractDiv);
+        }
+    };
+
+    const handleDeposit = async (contractId) => {
+        try {
+            // Construct the environment for checking applicable inputs
+            const now = new Date();
+            const inTenMinutes = new Date(now.getTime() + 10 * 60000);
+            const environment = { 
+                timeInterval: { 
+                    from: now.getTime(), 
+                    to: inTenMinutes.getTime() 
+                } 
+            };
+
+            // Get applicable inputs for the contract
+            const { applicable_inputs } = await runtimeLifecycle.contracts.getApplicableInputs(contractId, environment);
+            const deposits = applicable_inputs.deposits;
+
+            // Check if there are any deposits to be made
+            if (deposits.length > 0) {
+                const depositInfo = deposits[0]; // Assuming handling the first deposit action
+                const input = {
+                    input_from_party: depositInfo.into_account,
+                    into_account: depositInfo.party,
+                    of_token: depositInfo.of_token,
+                    that_deposits: depositInfo.can_deposit,
+                };
+
+                // Construct the deposit request
+                const depositRequest = {
+                    inputs: [input],
+                    metadata: {},
+                    tags: { [DAPP_TAG]: "" },
+                    invalidHereafter: inTenMinutes.toISOString(),
+                };
+
+                // Apply the inputs to the contract
+                const txId = await runtimeLifecycle.contracts.applyInputs(contractId, depositRequest);
+                await bWallet.waitConfirmation(txId);
+                alert(`Deposit successful. Transaction ID: ${txId}`);
+            } else {
+                alert('No deposit action required for this contract.');
+            }
+        } catch (error) {
+            alert(`Error processing deposit: ${error.message}`);
+        }
+    };
+
+
+    document.getElementById('checkContractsBtn').addEventListener('click', checkActiveContracts);
+    </script>
+</body>
+</html>

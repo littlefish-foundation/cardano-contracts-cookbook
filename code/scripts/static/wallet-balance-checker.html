@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+<title>Simple Sign Tx</title>
+<body>
+    <select id="walletSelector"></select>
+    <button id="selectWalletBtn">Select Wallet</button>
+    <div id="walletAddress">Address: </div>
+    <div id="walletBalance">Balance: </div>
+    <script src="https://cdn.jsdelivr.net/gh/input-output-hk/marlowe-ts-sdk/jsdelivr-npm-importmap.js"></script>
+    <script type="module">
+    import { mkRuntimeLifecycle } from '@marlowe.io/runtime-lifecycle/browser';
+    import * as wallet from '@marlowe.io/wallet';
+    const runtimeURL = "https://marlowe-runtime-preview-web.demo.scdev.aws.iohkdev.io";
+
+    async function setupWallet() {
+        const walletSelector = document.getElementById("walletSelector");
+        wallet.getInstalledWalletExtensions().forEach(ext => walletSelector.add(new Option(ext.name, ext.name)));
+        document.getElementById("selectWalletBtn").onclick = async () => {
+            const runtimeLifecycle = await mkRuntimeLifecycle({ walletName: walletSelector.value, runtimeURL });
+            const walletAddress = await runtimeLifecycle.wallet.getChangeAddress();
+            const lovelaces = await runtimeLifecycle.wallet.getLovelaces();
+            document.getElementById('walletAddress').textContent = 'Address: ' + walletAddress;
+            document.getElementById('walletBalance').textContent = 'Balance: ' + (Number(lovelaces) / 1000000);
+        };
+    }
+    setupWallet();
+    </script>
+</body>
+</html>

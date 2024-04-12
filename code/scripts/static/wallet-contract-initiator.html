@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+<title>Simple Sign Tx</title>
+<body>
+    <select id="walletSelector"></select>
+    <button id="selectWalletBtn">Select Wallet</button>
+    <form id="coffeeForm">
+        <button type="submit">Create Contract</button>
+    </form>
+    <div id="status"></div>
+    <script src="https://cdn.jsdelivr.net/gh/input-output-hk/marlowe-ts-sdk/jsdelivr-npm-importmap.js"></script>
+    <script type="module">
+    import { mkRuntimeLifecycle } from '@marlowe.io/runtime-lifecycle/browser';
+    import * as wallet from '@marlowe.io/wallet';
+    import { datetoTimeout, lovelace } from "@marlowe.io/language-core-v1";
+    const walletSelector = document.getElementById("walletSelector");
+    const selectWalletBtn = document.getElementById("selectWalletBtn");
+    const runtimeURL = "https://marlowe-runtime-preview-web.demo.scdev.aws.iohkdev.io";
+    const policyID = "${PARTY1_ROLE_POLICYID}";
+    const DAPP_TAG = "swap_demo";
+    let runtimeLifecycle, bWallet;
+    async function initializeWallet(walletName) {
+        runtimeLifecycle = await mkRuntimeLifecycle({ walletName, runtimeURL });
+        bWallet = await wallet.mkBrowserWallet(walletName);
+    }
+    wallet.getInstalledWalletExtensions().forEach(walletExtension => {
+        walletSelector.add(new Option(walletExtension.name, walletExtension.name));
+    });
+    selectWalletBtn.addEventListener('click', async () => {
+        await initializeWallet(walletSelector.value);
+    });
+    if(walletSelector.options.length > 0) {
+        initializeWallet(walletSelector.options[0].value);
+    }
+    document.getElementById('coffeeForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const twentyFourHoursInMilliseconds = 24 * 60 * 60 * 1000;
+        const contract = {
+        "when": [
+          {
+            "then": {
+              "when": [
+                {
+                  "then": {
+                    "token": { "token_name": "", "currency_symbol": "" },
+                    "to": { "party": { "role_token": "Party2" } },
+                    "then": {
+                      "token": { "token_name": "", "currency_symbol": "" },
+                      "to": { "party": { "role_token": "Party1" } },
+                      "then": "close",
+                      "pay": BigInt(200000000),
+                      "from_account": { "role_token": "Party2" }
+                    },
+                    "pay": BigInt(100000000),
+                    "from_account": { "role_token": "Party1" }
+                  },
+                  "case": {
+                    "party": { "role_token": "Party2" },
+                    "of_token": { "token_name": "", "currency_symbol": "" },
+                    "into_account": { "role_token": "Party2" },
+                    "deposits": BigInt(200000000)
+                  }
+                }
+              ],
+              "timeout_continuation": "close",
+              "timeout": datetoTimeout(new Date(Date.now() + twentyFourHoursInMilliseconds))
+            },
+            "case": {
+              "party": { "role_token": "Party1" },
+              "of_token": { "token_name": "", "currency_symbol": "" },
+              "into_account": { "role_token": "Party1" },
+              "deposits": BigInt(100000000)
+            }
+          }
+        ],
+        "timeout_continuation": "close",
+        "timeout": datetoTimeout(new Date(Date.now() + twentyFourHoursInMilliseconds))
+        };
+        const [contractId, txnId] = await runtimeLifecycle.contracts.createContract({
+            contract: contract,
+            roles: policyID,
+            tags: { [DAPP_TAG]: "" },
+        });
+        await bWallet.waitConfirmation(txnId);
+        document.getElementById('status').textContent = 'Contract Created Successfully, you may Continue...';
+    });
+    </script>
+</body>
+</html>

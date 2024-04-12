@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Sign Tx</title>
+</head>
+<body>
+    <select id="walletSelector"></select>
+    <button id="selectWalletBtn">Select Wallet</button>
+    <button id="withdrawPayoutsBtn">Withdraw Payouts</button>
+    <div id="status"></div>
+    <script src="https://cdn.jsdelivr.net/gh/input-output-hk/marlowe-ts-sdk/jsdelivr-npm-importmap.js"></script>
+    <script type="module">
+    import { mkRuntimeLifecycle } from '@marlowe.io/runtime-lifecycle/browser';
+    import * as wallet from '@marlowe.io/wallet';
+    import { mkRestClient } from "@marlowe.io/runtime-rest-client";
+
+    const walletSelector = document.getElementById("walletSelector");
+    const selectWalletBtn = document.getElementById("selectWalletBtn");
+    const runtimeURL = "https://marlowe-runtime-preview-web.demo.scdev.aws.iohkdev.io";
+    
+    let runtimeLifecycle, bWallet;
+
+    const initializeWallet = async (walletName) => {
+        runtimeLifecycle = await mkRuntimeLifecycle({ walletName, runtimeURL });
+        bWallet = await wallet.mkBrowserWallet(walletName);
+    };
+
+    wallet.getInstalledWalletExtensions().forEach(walletExtension => {
+        const option = document.createElement("option");
+        option.value = walletExtension.name;
+        option.text = walletExtension.name;
+        walletSelector.add(option);
+    });
+
+    selectWalletBtn.addEventListener('click', async () => {
+        await initializeWallet(walletSelector.value);
+    });
+
+    const handleWithdrawPayouts = async () => {
+        const statusDiv = document.getElementById('status');
+        statusDiv.textContent = 'Processing withdrawal...';
+        try {
+            const redeemAmount = await runtimeLifecycle.payouts.available();
+            const relevantPayoutIds = redeemAmount.filter(payout => 
+                payout.role.policyId === "${PARTY1_ROLE_POLICYID}"
+            ).map(payout => payout.payoutId);
+
+            if (relevantPayoutIds.length > 0) {
+                await runtimeLifecycle.payouts.withdraw(relevantPayoutIds);
+                statusDiv.textContent = 'Withdrawal Successful';
+            } else {
+                statusDiv.textContent = 'No relevant payouts to withdraw';
+            }
+        } catch (error) {
+            statusDiv.textContent = 'Error processing withdrawal';
+        }
+    };
+
+    document.getElementById('withdrawPayoutsBtn').addEventListener('click', handleWithdrawPayouts);
+    </script>
+</body>
+</html>

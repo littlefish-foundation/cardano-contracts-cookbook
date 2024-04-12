@@ -20,3 +20,6 @@ code/notebooks/address.json
 # ignore packages
 code/notebooks/packages_bkcp/*
 code/notebooks/static_bkcp/*
+# ignore the website code (overwritten by static code)
+code/scripts/templates/main.html
+code/scripts/__pycache__/*
